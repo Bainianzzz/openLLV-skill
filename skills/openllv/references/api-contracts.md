@@ -1,7 +1,5 @@
 # openLLV 公开契约与 kwargs 路由
 
-依据：openLLV 0.1.0 源码（`openLLV/api.py`、`predictor.py`、`deepLearning/predictor.py`、`tradition/predictor.py`、`deepLearning/trainer.py`、`evaluation/evaluator.py`、`data/image_io.py`）。源码变动后以源码为准。
-
 本文只写契约。已知副作用、报错后果与处理方式统一见 `gotchas.md`。
 
 ## 顶层 API
@@ -38,14 +36,12 @@ list_available() -> dict[str, list[{"name": str, "aliases": list[str]}]]
 
 ## `predict` 的 kwargs 路由
 
-`openLLV/api.py` 的 `_PREDICT_CALL_KWARGS`：
+以下调用键（只有这几个）进入后端 `predict_single` / `predict_batch`；其余键全部进入 `Predictor(...)`：
 
 ```text
 progress_bar, output_name, output_ext, save, model_kwargs,
 ext, timeout, headers, verify_ssl, cancel
 ```
-
-这些键进入后端 `predict_single` / `predict_batch`；其余键全部进入 `Predictor(...)`：
 
 ```text
 Predictor(target=None, *, model=None, method=None, backend="auto",
@@ -121,7 +117,7 @@ Trainer(config=None, **kwargs)
 
 `config`：`None`、内置配置名、YAML 路径、嵌套 dict。内置名的匹配与歧义规则见 `catalog.md` §内置训练配置。
 
-`root_dir` 必填。`**kwargs` 走 `Trainer._kwargs_to_config`，未知键抛 `TypeError`。平铺键：
+`root_dir` 必填。`**kwargs` 平铺进配置，未知键抛 `TypeError`。平铺键：
 
 | 分组 | 键 |
 | --- | --- |

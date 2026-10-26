@@ -8,9 +8,7 @@ metadata:
 
 # openLLV 使用手册
 
-**仓库根目录** = 含 `pyproject.toml` 和 `openLLV/` 包目录的目录。本文命令都在根目录执行。
-
-权威顺序：`openLLV/**/*.py` > `docs/`、`README.md`、`.agents/` 里的旧说明。
+权威顺序：实际运行行为 > 本文与 `references/` 的结论。
 
 内容分工：契约与签名在 `references/api-contracts.md`，名称与指标特性在 `references/catalog.md`，边界行为与陷阱在 `references/gotchas.md`。每条内容只写在其中一处。
 
@@ -21,7 +19,7 @@ python -c "import openLLV as llv; print(len(llv.list_models()), len(llv.list_alg
 ```
 
 - 打印两个数字 → 环境可用，继续。
-- `ModuleNotFoundError: openLLV` → `python -m pip install -e ".[dev]"`（要求 Python ≥ 3.8、torch ≥ 2.0）。
+- `ModuleNotFoundError: openLLV` → 先安装 openLLV（要求 Python ≥ 3.8、torch ≥ 2.0）。
 - `ModuleNotFoundError: torch` → 先装 PyTorch；不要在缺 torch 的环境里判断代码有 bug。
 
 ## 1. 选路线
@@ -32,7 +30,7 @@ python -c "import openLLV as llv; print(len(llv.list_models()), len(llv.list_alg
 | 训练模型 | `llv.train` | §3 |
 | 评估输出目录 | `llv.evaluate` | §4 |
 | 图像读取、保存、格式转换 | `llv.imread`、`llv.imwrite` | §5 |
-| 查已注册名称与别名 | `llv.list_available()` | `references/catalog.md` |
+| 查已注册名称、别名与构造参数 | `llv.list_available()` | `references/catalog.md` |
 | 行为与预期不符 | — | `references/gotchas.md` |
 
 ## 2. 预测
@@ -166,10 +164,10 @@ path = llv.imwrite(arr, "results/copy.png")           # -> Path
 1. 跑 §0 的导入检查。
 2. 用 `llv.list_*()` 确认名字确实注册。
 3. 对照 `references/gotchas.md` 的已知边界。
-4. 跑最小复现：`python -m pytest -q test/<相关文件>`。
+4. 跑最小复现：只保留触发问题的那一次调用，逐步加参数定位。
 
 ## 参考文件
 
 - `references/api-contracts.md` — 公开签名、默认值、返回契约、kwargs 路由、训练平铺键与产物、评估配对与结果结构、图像 I/O 格式与路径规则。
-- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名与参数文档入口、指标方向与依赖、配置名匹配规则。
+- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名、各组件构造参数与默认值、指标方向与依赖、配置名匹配规则。
 - `references/gotchas.md` — 23 条已核实的边界行为、默认副作用与参数命名陷阱；同类内容只在此处展开。
