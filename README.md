@@ -44,26 +44,26 @@ skills/
         └── gotchas.md
 ```
 
-| 文件                          | 作用                                                                                  |
-| ----------------------------- | ------------------------------------------------------------------------------------- |
-| `SKILL.md`                    | 轻量入口：导入自检、任务路由，以及预测 / 训练 / 评估 / 图像 I/O 四段带完成判据的流程  |
-| `references/api-contracts.md` | 公开签名、`predict` 的 kwargs 路由、返回契约、`Trainer` 平铺键、评估结果结构          |
-| `references/catalog.md`       | 已注册的 17 个模型、13 个传统算法、9 个指标、21 个损失、2 个数据集、17 个内置训练配置 |
-| `references/gotchas.md`       | 23 条已核实的边界行为、默认副作用与参数命名陷阱                                       |
+| 文件                          | 作用                                                                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `SKILL.md`                    | 轻量入口：导入自检、任务路由，以及预测 / 训练 / 评估 / 图像 I/O 四段流程（前三段带完成判据）                                |
+| `references/api-contracts.md` | 公开签名、`predict` 的 kwargs 路由、返回契约、输出路径规则、`Trainer` 平铺键与产物、评估配对与结果结构、图像 I/O 格式与路径 |
+| `references/catalog.md`       | 已注册的 17 个模型、13 个传统算法、9 个指标、21 个损失、2 个数据集、17 个内置训练配置                                       |
+| `references/gotchas.md`       | 23 条已核实的边界行为、默认副作用与参数命名陷阱                                                                             |
 
 `SKILL.md` 只保留每次都会用到的流程；细节按需从 `references/` 读取，不需要一次全加载。
 
 ## 能力
 
-| 能力                                                  | 方式                                    | 入口                          |
-| ----------------------------------------------------- | --------------------------------------- | ----------------------------- |
-| 单图或目录做增强 / 复原（传统算法与深度模型）         | `llv.predict` / `llv.enhance`           | `SKILL.md` §2                 |
-| 用训练产出的 checkpoint 推理                          | `llv.predict(".../last.pt", ...)`       | `references/api-contracts.md` |
-| 训练模型（内置配置、YAML、字典、平铺参数）            | `llv.train` / `Trainer`                 | `SKILL.md` §3                 |
-| 评估输出目录（全参考与无参考指标）                    | `llv.evaluate`                          | `SKILL.md` §4                 |
-| 读取、保存、转换图像格式                              | `llv.imread` / `llv.imwrite`            | `SKILL.md` §5                 |
-| 查询可用的模型、算法、指标、损失、数据集与别名        | `llv.list_available()` / `llv.list_*()` | `references/catalog.md`       |
-| 排查参数、输出路径、值域、checkpoint 问题             | —                                       | `references/gotchas.md`       |
+| 能力                                           | 方式                                    | 入口                    |
+| ---------------------------------------------- | --------------------------------------- | ----------------------- |
+| 单图或目录做增强 / 复原（传统算法与深度模型）  | `llv.predict` / `llv.enhance`           | `SKILL.md` §2           |
+| 用训练产出的 checkpoint 推理                   | `llv.predict(".../last.pt", ...)`       | `SKILL.md` §2           |
+| 训练模型（内置配置、YAML、字典、平铺参数）     | `llv.train` / `Trainer`                 | `SKILL.md` §3           |
+| 评估输出目录（全参考与无参考指标）             | `llv.evaluate`                          | `SKILL.md` §4           |
+| 读取、保存、转换图像格式                       | `llv.imread` / `llv.imwrite`            | `SKILL.md` §5           |
+| 查询可用的模型、算法、指标、损失、数据集与别名 | `llv.list_available()` / `llv.list_*()` | `references/catalog.md` |
+| 排查参数、输出路径、值域、checkpoint 问题      | —                                       | `references/gotchas.md` |
 
 ## 许可证
 
