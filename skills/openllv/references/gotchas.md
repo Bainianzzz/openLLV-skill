@@ -1,8 +1,8 @@
-# 已核实的边界行为与文档漂移
+# 已核实的边界行为与参数陷阱
 
-每条都来自源码阅读；括号里是依据。遇到与本文冲突的行为，先复查源码。
+每条都来自源码阅读。依据里的源码路径相对仓库根的 `openLLV/` 包目录；仓库级文件（`README.md`、`docs/`、`.agents/`）按仓库根路径书写。遇到与本文冲突的行为，先复查源码。
 
-## 训练与 checkpoint
+## 训练与通用参数
 
 ### 1. `best.pt` 不是“最佳 epoch”
 
@@ -22,11 +22,13 @@
 
 处理：只有训练目录时传 `val_split=None`；或提供 `val_input_dir` / `val_target_dir`。依据：`deepLearning/trainer.py:769-816`、`deepLearning/config/*.yaml`。
 
-### 4. 平铺键是 `workers`，不是 `num_workers`
+### 4. 公开 worker 参数名是 `workers`，不是 `num_workers`
 
-`num_workers` 是 DataLoader 的内部参数；`Trainer` 的公开平铺键和 `Predictor` 构造参数都叫 `workers`。传 `num_workers` 会抛 `TypeError`。
+`Predictor`、深度后端 `Predictor`、`Trainer` 平铺键、`Evaluator` 的公开参数都叫 `workers`；`num_workers` 只是内部构造 DataLoader 时的实参名。
 
-依据：`deepLearning/trainer.py:257-308`、`predictor.py:45-60`、`deepLearning/predictor.py:177-187`。
+写错位置的后果不同：`llv.train(..., num_workers=4)` 抛 `TypeError`；`llv.predict(..., num_workers=4)` 在深度后端会被并入模型 `config`，静默无效。调用时统一写 `workers=...`。
+
+依据：`predictor.py:58`、`deepLearning/predictor.py:186`、`deepLearning/trainer.py:265`、`evaluation/evaluator.py:28`。
 
 ### 5. 内置配置的 `root_dir` 是占位符
 
@@ -150,13 +152,6 @@ NumPy 路径走 `ImageReader` → `_ensure_uint8`，只做 `clip(0,255).astype(u
 
 依据：`deepLearning/models/BaseModel.py:85-91` 对比 `tradition/algorithms/BaseModel.py:99-106`。
 
-### 26. 旧文档里的 `num_workers` 与 `configs/` 路径会误导
-
-- `.agents/skills/openllv-doc-writer/references/api-map.md` 写 `Predictor(..., num_workers=...)`，源码是 `workers`。
-- `README.md` 与 `docs/usage/cli.md` 举例的 `configs/experiment.yaml` 在仓库里不存在（示例路径需自建）。
-
-处理：以 `openLLV/*.py` 为准；示例路径先 `ls` 确认。依据：`predictor.py:58`、`deepLearning/predictor.py:186`、仓库根目录。
-
-### 27. `list_available` 与 `list_*` 的粒度不同
+### 26. `list_available` 与 `list_*` 的粒度不同
 
 `list_available()` 每个类只出现一次并带 `aliases`；`list_models()` / `list_algorithms()` 等返回**所有**查询键（含别名）。做存在性判断用 `list_*`，展示组件用 `list_available`。依据：`api.py:239-285`。

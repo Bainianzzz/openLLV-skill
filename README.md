@@ -51,7 +51,7 @@ skills/
 | `references/api-contracts.md` | 公开签名、`predict` 的 kwargs 路由、返回契约、`Trainer` 平铺键、评估结果结构          |
 | `references/catalog.md`       | 已注册的 17 个模型、13 个传统算法、9 个指标、21 个损失、2 个数据集、17 个内置训练配置 |
 | `references/extending.md`     | 新增五类组件的改动清单、可粘贴模板与验证命令                                          |
-| `references/gotchas.md`       | 27 条已核实的边界行为、默认副作用与文档漂移                                           |
+| `references/gotchas.md`       | 26 条已核实的边界行为、默认副作用与参数命名陷阱                                       |
 
 `SKILL.md` 只保留每次都会用到的流程；细节按需从 `references/` 读取，不需要一次全加载。
 

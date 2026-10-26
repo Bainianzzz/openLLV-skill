@@ -10,7 +10,7 @@ metadata:
 
 **仓库根目录** = 含 `pyproject.toml` 和 `openLLV/` 包目录的目录。本文命令都在根目录执行。
 
-权威顺序：`openLLV/**/*.py` > `docs/`、`README.md`、`.agents/` 里的旧说明。已知文档不一致见 `references/gotchas.md`。
+权威顺序：`openLLV/**/*.py` > `docs/`、`README.md`、`.agents/` 里的旧说明。已知边界行为见 `references/gotchas.md`。
 
 ## 0. 先确认能导入
 
@@ -211,4 +211,4 @@ path = llv.imwrite(arr, "results/copy.png")           # -> Path
 - `references/api-contracts.md` — 公开签名、返回契约、kwargs 路由、训练平铺键、结果结构。
 - `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名、源码与参数文档入口。
 - `references/extending.md` — 新增五类组件的改动清单、模板与验证方式。
-- `references/gotchas.md` — 已核实的边界行为、默认副作用与文档漂移。
+- `references/gotchas.md` — 已核实的边界行为、默认副作用与参数命名陷阱。
