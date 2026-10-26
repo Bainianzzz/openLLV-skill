@@ -10,7 +10,9 @@ metadata:
 
 **仓库根目录** = 含 `pyproject.toml` 和 `openLLV/` 包目录的目录。本文命令都在根目录执行。
 
-权威顺序：`openLLV/**/*.py` > `docs/`、`README.md`、`.agents/` 里的旧说明。已知边界行为见 `references/gotchas.md`。
+权威顺序：`openLLV/**/*.py` > `docs/`、`README.md`、`.agents/` 里的旧说明。
+
+内容分工：契约与签名在 `references/api-contracts.md`，名称与指标特性在 `references/catalog.md`，边界行为与陷阱在 `references/gotchas.md`。每条内容只写在其中一处。
 
 ## 0. 先确认能导入
 
@@ -43,7 +45,7 @@ print(llv.list_models())       # 深度模型
 print(llv.list_algorithms())   # 传统算法
 ```
 
-2. 单图。返回值是 `(图像, 保存路径)`；`save=False` 时路径为 `None`。
+2. 单图：
 
 ```python
 import openLLV as llv
@@ -61,7 +63,7 @@ enhanced, path = llv.predict(
 )
 ```
 
-3. 目录。递归处理，保留相对子目录和文件名；返回列表，顺序固定。
+3. 目录。递归处理，返回列表，顺序固定。
 
 ```python
 saved_paths = llv.predict(
@@ -79,22 +81,9 @@ enhanced, path = llv.predict(
 )
 ```
 
+5. 参数放哪：`llv.predict` 的键分三层——调用键、`Predictor` 键、其余按后端进模型 `config` 或算法构造器。完整键表与 backend 推断规则见 `references/api-contracts.md` §`predict` 的 kwargs 路由；放错层的后果见 `references/gotchas.md` #9—#11。
+
 **完成判据**：单图返回二元组，`save=True` 时路径指向已存在文件、`save=False` 时路径为 `None`；目录返回路径数量等于输入支持图片数量，或 `save=False` 时返回等长图像列表且没有写盘。
-
-### 参数放哪（最常错）
-
-`llv.predict(name, source, output=None, **kwargs)` 先拆 kwargs：
-
-- 调用参数（其余全进 `Predictor`）：`progress_bar`、`output_name`、`output_ext`、`save`、`model_kwargs`、`ext`、`timeout`、`headers`、`verify_ssl`、`cancel`。
-- `Predictor` 参数：`backend`、`device`、`output_dir`、`config`、`transform`、`resize`、`batch_size`、`workers`。
-- 剩下的键：深度后端进模型 `config`；传统后端进算法构造器。
-
-硬约束：
-
-- 名字同时存在于两个注册表 → `ValueError`，显式写 `backend="deep"` 或 `backend="traditional"`。
-- 传统后端不接受 `resize`（抛 `ValueError`），也不使用 `device`（只打印警告）。
-- 传统后端收到不存在的参数只警告、不报错；参数拼错会静默失效。
-- 深度后端的未知平铺参数会进入模型 `config`；模型不读取就没有效果。
 
 ## 3. 训练
 
@@ -108,7 +97,7 @@ dataset_root/
   val/target/*.png
 ```
 
-2. 选配置名（内置 17 个，见 `references/catalog.md`）：
+2. 查内置配置名（清单见 `references/catalog.md`）：
 
 ```bash
 python -c "from openLLV.deepLearning.config import list_available_configs; print(list_available_configs())"
@@ -119,7 +108,7 @@ python -c "from openLLV.deepLearning.config import list_available_configs; print
 ```python
 import openLLV as llv
 
-if __name__ == "__main__":   # workers > 0 时必须保留这层保护
+if __name__ == "__main__":
     result = llv.train(
         "ZeroDCE",
         root_dir="datasets/my_dataset",
@@ -128,27 +117,15 @@ if __name__ == "__main__":   # workers > 0 时必须保留这层保护
     print(result["history"], result["checkpoint_dir"])
 ```
 
-4. 检查产物，默认写到 `checkpoints/<Model>_<Dataset>/`：
-
-```text
-checkpoints/ZeroDCE_CommonDataset/
-  checkpoints/last.pt
-  checkpoints/best.pt
-  logs/history.json
-  ZeroDCE.yaml
-```
-
-5. 续训：`resume=".../last.pt"`（或 `resume_path=`）。
+4. 续训：`resume=".../last.pt"`（或 `resume_path=`）。产物目录与文件清单见 `references/api-contracts.md` §训练。
 
 **完成判据**：`result["history"]` 非空，且 `result["checkpoint_dir"]/last.pt` 存在。
 
 关键点：
 
-- `root_dir` 必填；内置 YAML 里的 `path/to/your/dataset` 是占位符。
-- 没有验证集时显式传 `val_split=None`，否则会去解析验证目录并报路径错误。
-- 未知平铺键抛 `TypeError`，不会静默忽略；完整键表见 `references/api-contracts.md`。
 - 需微调的层用 `model_params` 传模型构造键；设备只由 `device` 控制，不要塞进 `model_params`。
 - 监督损失需要成对的 `target` 图；数据集中缺 target 时会报错。
+- 三个训练期高频坑：验证集、数据集根、入口保护。见 `references/gotchas.md` #3、#5、#6。
 
 ## 4. 评估
 
@@ -165,14 +142,11 @@ results = llv.evaluate(
 print(results["statistics"]["PSNR"]["mean"])
 ```
 
-- 有参考图 → 全参考指标；无 `ref_img_dir` → 全参考指标记 `NaN` 并跳过。
-- 按**文件名 stem（不含后缀）小写**配对；扩展名可以不同。
-- 结果结构：`{"filenames", "metrics": {指标: {文件名: 值}}, "statistics": {指标: {mean,std,min,max,valid_count,total_count,better}}}`。
-- 不传 `save_path` 也会写 `./results/eval.json`。
+- 指标方向、是否需要参考图、外部依赖见 `references/catalog.md` §评估指标。
+- 配对规则、结果结构见 `references/api-contracts.md` §评估。
+- 评估的已知副作用见 `references/gotchas.md` #16—#19。
 
 **完成判据**：`results["statistics"]` 含请求的指标，且全参考指标的 `valid_count > 0`。
-
-指标方向：PSNR、SSIM、MUSIQ 越高越好；MSE、MAE、LPIPS、LOE、NIQE、PI 越低越好。LOE 的参考图应是原始暗光图。LPIPS、NIQE、MUSIQ、PI 依赖 `pyiqa`。
 
 ## 5. 图像 I/O
 
@@ -184,10 +158,8 @@ arr = llv.imread("Inputs/input.jpg", output_format="numpy")  # uint8 RGB
 path = llv.imwrite(arr, "results/copy.png")           # -> Path
 ```
 
-- 输入：本地路径、URL、base64、bytes、PIL、NumPy、单图 tensor。
-- `output_format`：`pil`、`numpy`、`bytes`、`base64`、`file`。
-- 公共三通道数据统一 RGB；OpenCV 的 BGR 只存在于传统算法内部。
-- `imwrite` 的 `output` 带后缀按文件处理，不带后缀按目录处理；省略时写 `results/`。
+- 输入类型、`output_format` 取值、`imwrite` 路径规则见 `references/api-contracts.md` §图像 I/O。
+- 值域与通道顺序的陷阱见 `references/gotchas.md` #20—#22。
 
 ## 6. 排错顺序
 
@@ -198,6 +170,6 @@ path = llv.imwrite(arr, "results/copy.png")           # -> Path
 
 ## 参考文件
 
-- `references/api-contracts.md` — 公开签名、返回契约、kwargs 路由、训练平铺键、结果结构。
-- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名与参数文档入口。
-- `references/gotchas.md` — 已核实的边界行为、默认副作用与参数命名陷阱。
+- `references/api-contracts.md` — 公开签名、默认值、返回契约、kwargs 路由、训练平铺键与产物、评估配对与结果结构、图像 I/O 格式与路径规则。
+- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名与参数文档入口、指标方向与依赖、配置名匹配规则。
+- `references/gotchas.md` — 23 条已核实的边界行为、默认副作用与参数命名陷阱；同类内容只在此处展开。

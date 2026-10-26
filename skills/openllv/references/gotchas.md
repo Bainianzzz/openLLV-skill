@@ -72,7 +72,7 @@ DataLoader 在 spawn 平台会重新导入主模块；没有 `if __name__ == "__
 
 依据：`predictor.py:116-131`、`tradition/predictor.py:272-307`。
 
-### 12. 目录输入的 `output` 一律当目录
+### 12. 目录输入写 `out.png` 会建同名目录
 
 即使写成 `output="results/out.png"`，目录预测也会创建名为 `out.png` 的目录。`output_name` 对目录输入直接抛 `ValueError`。
 
@@ -112,7 +112,7 @@ DataLoader 在 spawn 平台会重新导入主模块；没有 `if __name__ == "__
 
 ### 19. 指标 kwargs 会发给所有指标
 
-`Evaluator` 把 `**kwargs` 传给每个 metric 构造器。给某个指标传专属参数，其他指标也可能收到；构造失败会被捕获并跳过（只警告）。
+给某个指标传专属参数时，其他指标也会收到；构造失败会被捕获并跳过（只警告）。
 
 依据：`evaluation/evaluator.py:61-80`。
 
@@ -124,9 +124,9 @@ NumPy 路径走 `ImageReader` → `_ensure_uint8`，只做 `clip(0,255).astype(u
 
 处理：先转成 uint8（乘 255）或传 torch tensor（tensor 路径会按 `[0,1]` 缩放）。依据：`data/image_io.py:448-455,519-527,759-795`。
 
-### 21. NumPy 输入按 RGB 解释
+### 21. OpenCV 的 BGR 数组直接传入会红蓝互换
 
-`ImageReader` 不做 BGR→RGB；OpenCV 读出的 BGR 数组直接传入会红蓝互换。依据：`data/image_io.py:499-513`。
+`ImageReader` 按 RGB 解释数组（见 `api-contracts.md` §图像 I/O）；OpenCV 读出的 BGR 数组不做转换，直接传入会红蓝互换。依据：`data/image_io.py:499-513`。
 
 ### 22. 单图 tensor 只接受 batch=1
 
@@ -136,4 +136,4 @@ NumPy 路径走 `ImageReader` → `_ensure_uint8`，只做 `clip(0,255).astype(u
 
 ### 23. `list_available` 与 `list_*` 的粒度不同
 
-`list_available()` 每个类只出现一次并带 `aliases`；`list_models()` / `list_algorithms()` 等返回**所有**查询键（含别名）。做存在性判断用 `list_*`，展示组件用 `list_available`。依据：`api.py:239-285`。
+`list_available()` 每个类只出现一次并带 `aliases`；`list_models()` / `list_algorithms()` 等返回**所有**查询键（含别名，已转小写并排序）。做存在性判断用 `list_*`，展示组件用 `list_available`。依据：`api.py:239-285`。

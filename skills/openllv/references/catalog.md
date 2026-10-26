@@ -32,7 +32,7 @@ python -c "import openLLV as llv; import pprint; pprint.pp(llv.list_available())
 | `DarkIR` | — | llie | `docs/models/llie/darkir.md` |
 | `CIDNet` | `HVI-CIDNet` | llie | `docs/models/llie/cidnet.md` |
 
-**模型名不是配置名**：`ZeroDCE++` 是配置名，不是模型查询名；模型要写 `ZeroDCEPlusPlus`（或直接用配置名调 `llv.train`）。
+**模型名不是配置名**：`llv.predict` 只认模型注册名，配置名只用于 `llv.train`。典型误用见 `gotchas.md` #8。
 
 ## 传统算法（13）
 
@@ -129,4 +129,4 @@ python -c "import openLLV as llv; import pprint; pprint.pp(llv.list_available())
 | `DarkIR` | `DarkIR` |
 | `CIDNet` | `CIDNet` |
 
-配置名匹配忽略大小写和标点，也匹配 YAML 内的 `model.name`；重名歧义会抛 `ValueError`。
+配置名匹配忽略大小写和标点（`ZeroDCEPlusPlus` 命中 `ZeroDCE++.yaml`），也匹配 YAML 内的 `model.name`；重名歧义会抛 `ValueError`。
