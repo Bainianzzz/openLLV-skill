@@ -86,13 +86,7 @@ DataLoader 在 spawn 平台会重新导入主模块；没有 `if __name__ == "__
 
 深度后端会把 `output_ext` 应用到显式文件路径；传统后端对显式文件路径原样使用（只改目录模式下的文件名）。依据：`deepLearning/predictor.py:762-786`、`tradition/predictor.py:341-375`。
 
-### 15. 自定义模型输出不要再把辅助项放最后
-
-预测器对 tuple/list 取**最后一个** tensor；`(pred, aux)` 会取到 `aux`。返回 dict 时优先取 `"pred"`，没有才取最后一个 tensor。
-
-处理：`return {"pred": pred, "aux": ...}` 或直接返回 tensor。依据：`deepLearning/predictor.py:657-693`。
-
-### 16. `image_range` 会改变预测前后处理
+### 15. `image_range` 会改变预测前后处理
 
 `image_range="minus_one_one"` 时预测器先把输入映射到 `[-1,1]`，输出再映回 `[0,1]`。`LEDNet` 模型默认是 `zero_one`，但内置 YAML 设成 `minus_one_one`；按名字预测和按配置训练可能走不同值域。
 
@@ -100,23 +94,23 @@ DataLoader 在 spawn 平台会重新导入主模块；没有 `if __name__ == "__
 
 ## 评估
 
-### 17. 不传 `save_path` 也会写文件
+### 16. 不传 `save_path` 也会写文件
 
 `evaluate` 始终调用 `save_results`；`save_path=None` 时写到 `./results/eval.json`。只读评估也会产生磁盘副作用。依据：`evaluation/evaluator.py:374-402`。
 
-### 18. 给了参考目录就会丢掉未配对图像
+### 17. 给了参考目录就会丢掉未配对图像
 
 `EvaluateDataset` 在提供参考图时只保留 stem 能配对的增强图；未配对的只发警告并从 `dataset` 中移除。之后**所有**指标（包括无参考指标）都只在这批子集上计算。
 
 处理：先核对 `len(dataset)` / `results["filenames"]` 与输出文件数是否一致。依据：`data/coreDataset.py:153-176`。
 
-### 19. 参考图尺寸会改变评估输入
+### 18. 参考图尺寸会改变评估输入
 
 全参考指标计算前，`BaseMetric._prepare_inputs` 会把增强图双线性缩放到参考图尺寸；两者尺寸不同时，指标不是按原尺寸算的。
 
 处理：对齐输出与参考图尺寸，或确认这种缩放可接受。依据：`evaluation/baseMetric.py:80-100`。
 
-### 20. 指标 kwargs 会发给所有指标
+### 19. 指标 kwargs 会发给所有指标
 
 `Evaluator` 把 `**kwargs` 传给每个 metric 构造器。给某个指标传专属参数，其他指标也可能收到；构造失败会被捕获并跳过（只警告）。
 
@@ -124,34 +118,22 @@ DataLoader 在 spawn 平台会重新导入主模块；没有 `if __name__ == "__
 
 ## 图像 I/O
 
-### 21. `imwrite` 写入 `[0,1]` 浮点 NumPy 会变黑
+### 20. `imwrite` 写入 `[0,1]` 浮点 NumPy 会变黑
 
 NumPy 路径走 `ImageReader` → `_ensure_uint8`，只做 `clip(0,255).astype(uint8)`，**不会**乘 255。`np.float32` 的 0.5 会变成 0。
 
 处理：先转成 uint8（乘 255）或传 torch tensor（tensor 路径会按 `[0,1]` 缩放）。依据：`data/image_io.py:448-455,519-527,759-795`。
 
-### 22. NumPy 输入按 RGB 解释
+### 21. NumPy 输入按 RGB 解释
 
 `ImageReader` 不做 BGR→RGB；OpenCV 读出的 BGR 数组直接传入会红蓝互换。依据：`data/image_io.py:499-513`。
 
-### 23. 单图 tensor 只接受 batch=1
+### 22. 单图 tensor 只接受 batch=1
 
 `[1,C,H,W]` 中 batch 必须为 1；更大 batch 抛 `ValueError`。依据：`data/image_io.py:471-481`。
 
-## 注册与文档
+## 组件查询
 
-### 24. 组件不导入就不注册
-
-类定义只在模块被导入时触发 `__init_subclass__`。新文件写好后必须接到包的导入链；或者显式调用 `LLVModel.register(...)` / `LLVEnhancer.register(...)` / `BaseLoss.register(...)` / `BaseDataset.register(...)` / `BaseMetric.register(...)`。
-
-依据：各基类的 `__init_subclass__` 与 `openLLV/**/__init__.py`。
-
-### 25. 传统算法重名会静默覆盖
-
-模型注册表检查重名并抛 `ValueError`；算法、损失、数据集、指标注册表不检查，后注册的覆盖先注册的。新增名字前先查 `references/catalog.md`。
-
-依据：`deepLearning/models/BaseModel.py:85-91` 对比 `tradition/algorithms/BaseModel.py:99-106`。
-
-### 26. `list_available` 与 `list_*` 的粒度不同
+### 23. `list_available` 与 `list_*` 的粒度不同
 
 `list_available()` 每个类只出现一次并带 `aliases`；`list_models()` / `list_algorithms()` 等返回**所有**查询键（含别名）。做存在性判断用 `list_*`，展示组件用 `list_available`。依据：`api.py:239-285`。

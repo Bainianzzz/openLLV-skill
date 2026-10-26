@@ -1,7 +1,7 @@
 # openLLV skill
 
 [openLLV](https://github.com/glory-wan/openLLV) 是一个面向低层视觉（low-level vision）的 Python 工具包，统一了传统算法、深度学习模型、训练、推理、图像 I/O 与图像质量评估。
-本 Skill 只覆盖 Python SDK：`predict` / `train` / `evaluate` / `imread` / `imwrite` 的正确用法，以及新增 `LLVModel`、`LLVEnhancer`、`BaseLoss`、`BaseDataset`、`BaseMetric` 组件时的改动清单。内容全部对照 openLLV 0.1.0 源码核实，Agent 会先按任务路由读取对应说明，再生成代码，避免误用接口与参数。
+本 Skill 只覆盖 Python SDK：`predict` / `train` / `evaluate` / `imread` / `imwrite` 的正确用法，以及常见参数、输出路径与值域问题。内容全部对照 openLLV 0.1.0 源码核实，Agent 会先按任务路由读取对应说明，再生成代码，避免误用接口与参数。
 
 ## 安装
 
@@ -41,7 +41,6 @@ skills/
     └── references/
         ├── api-contracts.md
         ├── catalog.md
-        ├── extending.md
         └── gotchas.md
 ```
 
@@ -50,8 +49,7 @@ skills/
 | `SKILL.md`                    | 轻量入口：导入自检、任务路由，以及预测 / 训练 / 评估 / 图像 I/O 四段带完成判据的流程  |
 | `references/api-contracts.md` | 公开签名、`predict` 的 kwargs 路由、返回契约、`Trainer` 平铺键、评估结果结构          |
 | `references/catalog.md`       | 已注册的 17 个模型、13 个传统算法、9 个指标、21 个损失、2 个数据集、17 个内置训练配置 |
-| `references/extending.md`     | 新增五类组件的改动清单、可粘贴模板与验证命令                                          |
-| `references/gotchas.md`       | 26 条已核实的边界行为、默认副作用与参数命名陷阱                                       |
+| `references/gotchas.md`       | 23 条已核实的边界行为、默认副作用与参数命名陷阱                                       |
 
 `SKILL.md` 只保留每次都会用到的流程；细节按需从 `references/` 读取，不需要一次全加载。
 
@@ -65,8 +63,7 @@ skills/
 | 评估输出目录（全参考与无参考指标）                    | `llv.evaluate`                          | `SKILL.md` §4                 |
 | 读取、保存、转换图像格式                              | `llv.imread` / `llv.imwrite`            | `SKILL.md` §5                 |
 | 查询可用的模型、算法、指标、损失、数据集与别名        | `llv.list_available()` / `llv.list_*()` | `references/catalog.md`       |
-| 新增模型、传统算法、损失、数据集、指标                | 继承对应基类                            | `references/extending.md`     |
-| 排查注册失败、输出路径异常、值域错误、checkpoint 问题 | —                                       | `references/gotchas.md`       |
+| 排查参数、输出路径、值域、checkpoint 问题             | —                                       | `references/gotchas.md`       |
 
 ## 许可证
 

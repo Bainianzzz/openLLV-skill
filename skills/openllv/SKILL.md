@@ -1,6 +1,6 @@
 ---
 name: openllv
-description: 使用或扩展 openLLV（Python/PyTorch 低层视觉工具包）的 Python SDK：图像增强与复原的预测、训练、评估、图像 I/O，新增 LLVModel / LLVEnhancer / BaseLoss / BaseDataset / BaseMetric 组件，以及排查组件注册、输出路径、值域与 checkpoint 问题。任务涉及 openLLV 仓库，或代码中出现 `import openLLV` 时使用。
+description: 使用 openLLV（Python/PyTorch 低层视觉工具包）的 Python SDK：图像增强与复原的预测、训练、评估与图像 I/O，以及排查参数、输出路径、值域与 checkpoint 问题。任务涉及 openLLV 仓库，或代码中出现 `import openLLV` 时使用。
 license: MIT
 metadata:
   version: "0.1.0"
@@ -30,7 +30,6 @@ python -c "import openLLV as llv; print(len(llv.list_models()), len(llv.list_alg
 | 训练模型 | `llv.train` | §3 |
 | 评估输出目录 | `llv.evaluate` | §4 |
 | 图像读取、保存、格式转换 | `llv.imread`、`llv.imwrite` | §5 |
-| 新增模型、算法、损失、数据集、指标 | 对应基类 | `references/extending.md` |
 | 查已注册名称与别名 | `llv.list_available()` | `references/catalog.md` |
 | 行为与预期不符 | — | `references/gotchas.md` |
 
@@ -149,7 +148,7 @@ checkpoints/ZeroDCE_CommonDataset/
 - 没有验证集时显式传 `val_split=None`，否则会去解析验证目录并报路径错误。
 - 未知平铺键抛 `TypeError`，不会静默忽略；完整键表见 `references/api-contracts.md`。
 - 需微调的层用 `model_params` 传模型构造键；设备只由 `device` 控制，不要塞进 `model_params`。
-- 监督损失需要 `target`；无参考损失需设 `requires_target = False`（见 `references/extending.md`）。
+- 监督损失需要成对的 `target` 图；数据集中缺 target 时会报错。
 
 ## 4. 评估
 
@@ -190,25 +189,15 @@ path = llv.imwrite(arr, "results/copy.png")           # -> Path
 - 公共三通道数据统一 RGB；OpenCV 的 BGR 只存在于传统算法内部。
 - `imwrite` 的 `output` 带后缀按文件处理，不带后缀按目录处理；省略时写 `results/`。
 
-## 6. 扩展组件（最小规则）
-
-- **模型**：继承 `LLVModel`，声明 `task`、`aliases`，实现 `_init_model()` 与 `forward()`；预测输出必须在 `[0,1]`，或配置 `image_range: "minus_one_one"`。在模型所在 task 包的 `__init__.py` 导入后才会注册。
-- **传统算法**：继承 `LLVEnhancer`，声明 `name`、`aliases`、`working_range`，实现 `_enhance()`。构造参数必须写进显式签名；`_enhance` 收到 BGR，返回同值域 BGR。
-- **损失 / 数据集 / 指标**：同样“导入即注册”。数据集至少实现 `_resolve_pair_dirs()`；指标类名以 `Metric` 结尾；损失按有/无 target 选 `forward` 签名。
-
-完整改动清单、代码模板和测试要求 → `references/extending.md`。
-
-## 7. 排错顺序
+## 6. 排错顺序
 
 1. 跑 §0 的导入检查。
 2. 用 `llv.list_*()` 确认名字确实注册。
-3. `grep -rn "<类名或参数名>" openLLV/` 定位真实实现。
-4. 对照 `references/gotchas.md` 的已知边界。
-5. 跑最小复现：`python -m pytest -q test/<相关文件>`。
+3. 对照 `references/gotchas.md` 的已知边界。
+4. 跑最小复现：`python -m pytest -q test/<相关文件>`。
 
 ## 参考文件
 
 - `references/api-contracts.md` — 公开签名、返回契约、kwargs 路由、训练平铺键、结果结构。
-- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名、源码与参数文档入口。
-- `references/extending.md` — 新增五类组件的改动清单、模板与验证方式。
+- `references/catalog.md` — 已注册模型/算法/指标/损失/数据集、别名与参数文档入口。
 - `references/gotchas.md` — 已核实的边界行为、默认副作用与参数命名陷阱。
